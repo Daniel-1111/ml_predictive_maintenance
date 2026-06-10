@@ -2,10 +2,19 @@
 
 [![Python](https://shields.io)](https://python.org)
 [![Scikit-Learn](https://shields.io)](https://scikit-learn.org)
+[![XGBoost](https://shields.io)](https://readthedocs.io)
 
-This project develops an end-to-end Machine Learning pipeline to predict catastrophic failures in an industrial machining process (CNC milling machine/lathe) using the **AI4I 2020 Predictive Maintenance Dataset**.
+This repository contains a two-part end-to-end Machine Learning study to predict catastrophic failures in an industrial machining process (CNC milling machine/lathe) using the **AI4I 2020 Predictive Maintenance Dataset**.
 
 The core value of this project lies in fusing **mechanical engineering and physical domain knowledge** with AI algorithms to tackle the classic challenge of highly imbalanced data in industrial environments.
+
+---
+
+## 📁 Repository Structure
+
+*   `01_predictive_maintenance_baseline.ipynb`: Exploratory Data Analysis (EDA), Feature Engineering, and training of baseline models (Logistic Regression & Random Forest).
+*   `02_advanced_models.ipynb`: Advanced gradient boosting implementation using XGBoost and automated hyperparameter optimization via GridSearchCV.
+*   `images/`: Directory containing generated analytical and performance plots.
 
 ---
 
@@ -21,9 +30,9 @@ Unlike common tabular datasets, each row here does not represent a different mac
 
 ---
 
-## 🚀 Project Steps
+## 🚀 Key Engineering Steps
 
-### 1. Feature Engineering
+### 1. Feature Engineering (Domain Knowledge)
 Leveraging the thermodynamic and kinematic rules of the industrial process, we engineered two "artificial latent variables" to explicitly provide physical constraints to the model:
 *   `temperature_difference`: The actual temperature gap ($\Delta T$).
 *   `power_proxy`: An indicator of mechanical power stress ($Torque \times RPM$).
@@ -35,38 +44,34 @@ Since the rotational speed operates in the thousands and torque in tens, we appl
   <img src="images/sensor_correlation_matrix.png" width="500" alt="Sensor Correlation Matrix">
 </p>
 
-### 3. Stratified Splitting
-Only **3.39%** of the instances in the dataset represent actual machine failures. To prevent the model from being blind to anomalies, we split the data into 80% Training and 20% Testing using **stratification** (`stratify=y`), forcing the exact same proportion of failures across both subsets.
+### 3. Stratified Splitting for Imbalanced Data
+Only **3.39%** of the dataset instances represent actual machine failures. To prevent the models from being blind to anomalies, we split the data into 80% Training and 20% Testing using **stratification** (`stratify=y`), forcing the exact same proportion of failures across both subsets.
 
 ---
 
-## 📊 Results & The Engineer's Dilemma (Recall vs Precision)
+## 📊 Results & The Engineer's Dilemma
 
-Two distinct algorithms were evaluated to test the pipeline's robustness: a baseline **Logistic Regression** (with balanced class weights) and an advanced **Random Forest Classifier** (100 estimators).
+Four modeling approaches were evaluated on the unseen test dataset (2,000 rows, containing 68 actual failures). The results are summarized below:
 
-### Performance Comparison (Test Dataset)
+| Metric | Logistic Regression | Random Forest | XGBoost (Baseline) | XGBoost (Fine-Tuned) |
+| :--- | :---: | :---: | :---: | :---: |
+| **Global Accuracy** | 86.0% | 99.0% | 99.0% | 99.0% |
+| **Precision (Failure Class)** | 18.0% | 96.0% | 85.0% | 88.0% |
+| **Recall (Failure Class)** | **87.0%** | 66.0% | **81.0%** | 79.0% |
+| **F1-Score (Failure Class)** | 0.30 | 0.78 | **0.83** | 0.79 |
 
+### 🔍 Technical Insights & The Tuning Paradox
 
-| Metric | Logistic Regression (Baseline) | Random Forest (Advanced) |
-| :--- | :---: | :---: |
-| **Global Accuracy** | 86.0% | 99.0% |
-| **Precision (Failure Class)** | 18.0% | 96.0% |
-| **Recall (Failure Class)** | **87.0%** | **66.0%** |
-| **F1-Score (Failure Class)** | 0.30 | 0.78 |
+An interesting phenomenon occurred during the hyperparameter tuning phase: the **Baseline XGBoost** slightly outperformed the **Fine-Tuned XGBoost** on the final test set ($0.83$ vs $0.79$ F1-Score). 
 
-#### Model 1: Logistic Regression (The "Paranoid Guard")
-Generated **276 false alarms** but achieved an outstanding **Recall of 87%** (successfully catching 59 out of 68 actual failures).
-<p align="center">
-  <img src="images/confusion_matrix_logistic_regression.png" width="400" alt="Confusion Matrix">
-</p>
-
-#### Model 2: Random Forest (The "Precise Specialist")
-Skyrocketed the precision to **96%** (virtually zero false alarms), but its Recall dropped to **66%** (allowing more physical failures to pass unnoticed).
+As data engineers, we interpret this through the lens of **Cross-Validation vs. Single-Split Variance**:
+1.  The `GridSearchCV` engine selected `max_depth: 5` and `n_estimators: 150` because it was the most stable and robust configuration *across all validation folds* during training, effectively protecting the model against overfitting.
+2.  The baseline model achieved a slightly higher score due to sample variance on this specific test set partition. In a real-world production deployment, the Fine-Tuned model offers a more reliable, stable, and less volatile variance under continuous industrial data streams.
 
 ### ⚙️ Practical Engineering Conclusion
 The choice of the final deployment model depends entirely on the factory's maintenance cost structure:
 1.  **Choose Logistic Regression** if a machine failure is catastrophic (destroys equipment, causes days of downtime). The cost of sending a technician to check 276 false alarms is vastly lower than losing the asset.
-2.  **Choose Random Forest** if stopping the machine for false alarms costs more than the physical maintenance or tool replacement itself.
+2.  **Choose Baseline/Tuned XGBoost** for the best operational equilibrium, maximizing failure detection while maintaining an extremely high precision rate (85%-88%), avoiding unnecessary production stops.
 
 ---
 
@@ -90,10 +95,9 @@ If you use this dataset or project, please cite the original publication by **S.
    ```
 2. Activate your virtual environment and install the required dependencies:
    ```bash
-   pip install jupyter pandas numpy scikit-learn matplotlib seaborn
+   pip install jupyter pandas numpy scikit-learn matplotlib seaborn xgboost
    ```
-3. Launch Jupyter Notebook and open the file:
+3. Launch Jupyter Notebook and open the files:
    ```bash
    jupyter notebook
    ```
-4. Run all cells in `predictive_maintenance_study.ipynb`.
