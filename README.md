@@ -1,8 +1,7 @@
 # 🏭 Industrial Failure Prediction: Predictive Maintenance with Machine Learning
 
-[![Python](https://shields.io)](https://python.org)
-[![Scikit-Learn](https://shields.io)](https://scikit-learn.org)
-[![XGBoost](https://shields.io)](https://readthedocs.io)
+![Python](https://shields.io) ![Scikit-Learn](https://shields.io) ![XGBoost](https://shields.io)
+
 
 This repository contains a two-part end-to-end Machine Learning study to predict catastrophic failures in an industrial machining process (CNC milling machine/lathe) using the **AI4I 2020 Predictive Maintenance Dataset**.
 
