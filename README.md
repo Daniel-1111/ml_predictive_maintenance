@@ -1,10 +1,10 @@
 # 🏭 Industrial Failure Prediction: Predictive Maintenance with Machine Learning
 
-<p align="left">
-  <img src="https://shields.io" alt="Python">
-  <img src="https://shields.io" alt="Scikit-Learn">
-  <img src="https://shields.io" alt="XGBoost">
-</p>
+![Python](https://shields.io)
+
+![Scikit-Learn](https://shields.io)
+
+![XGBoost](https://shields.io)
 
 
 
